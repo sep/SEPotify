@@ -17,6 +17,10 @@
       {
         "command": "SEPotify.login",
         "title": "SEPotify: Login"
+      },
+      {
+        "command": "SEPotify.pause",
+        "title": "SEPotify: Pause"
       }
     ]
   },
