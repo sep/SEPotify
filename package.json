@@ -27,8 +27,7 @@
         {
           "type": "webview",
           "id": "SEPotify.playerView",
-          "name": "SEPotify",
-          "icon": "media/icon.svg"
+          "name": "SEPotify"
         }
       ]
     },

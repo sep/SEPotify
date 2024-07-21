@@ -92,6 +92,7 @@ export function activate(context: vscode.ExtensionContext) {
 			method: "PUT", headers: { Authorization: `Bearer ${accessToken}` }
 		});
 	}
+
 }
 
 class SpotifyPlayerViewProvider implements vscode.WebviewViewProvider {
@@ -107,7 +108,8 @@ class SpotifyPlayerViewProvider implements vscode.WebviewViewProvider {
 			enableScripts: true,
 
 			localResourceRoots: [
-				this._extensionUri
+				this._extensionUri,
+				vscode.Uri.joinPath(this._extensionUri, 'media')
 			]
 		};
 
@@ -135,21 +137,18 @@ class SpotifyPlayerViewProvider implements vscode.WebviewViewProvider {
 			<head>
 				<meta charset="UTF-8">
 
-				<!--
-					Use a content security policy to only allow loading styles from our extension directory,
-					and only allow scripts that have a specific nonce.
-					(See the 'webview-sample' extension sample for img-src content security policy examples)
-				-->
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
-
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 				<title>SEPotify</title>
 			</head>
 			<body>
-				<button class="pause-play-button">Pause | Play</button>
+				<button type="submit" class="pause-play-button" style="background-color:black; outline:none">
+					<img src="https://img.icons8.com/?size=100&id=QgHnLwTtAxG8&format=png&color=ffffff" alt="Play/Pause" />
+				</button>
 
-				<script nonce="${nonce}" src="${scriptUri}"></script>
+				<p><small>Icons by <a href="https://icons8.com">Icons8</a></small></p>
+
+				<script src="${scriptUri}"></script>
 			</body>
 			</html>`;
 	}
