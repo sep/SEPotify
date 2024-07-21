@@ -62,19 +62,15 @@ export function activate(context: vscode.ExtensionContext) {
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.pausePlay', async () => {
-		const accessToken = await refreshToken();
+		const playStatus = await getPlayStatus();
 
-		const request = await fetch("https://api.spotify.com/v1/me/player", {
-			method: "GET", headers: { Authorization: `Bearer ${accessToken}` }
-		});
-
-		const { is_playing } = await request.json();
-
-		if (is_playing) {
+		if (playStatus.is_playing) {
 			pause();
 		} else {
 			play();
 		}
+
+		provider.update(playStatus.item.name, playStatus.item.album.images[0].url);
 	}));
 
 	const play = async () => {
@@ -93,17 +89,31 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 	}
 
+	async function getPlayStatus(): Promise<PlayStatus> {
+		const accessToken = await refreshToken();
+
+		const request = await fetch("https://api.spotify.com/v1/me/player", {
+			method: "GET", headers: { Authorization: `Bearer ${accessToken}` }
+		});
+
+		return await request.json();
+	}
+
 }
 
 class SpotifyPlayerViewProvider implements vscode.WebviewViewProvider {
 
 	public static readonly viewType = 'SEPotify.playerView';
 
+	private _view?: vscode.WebviewView;
+
 	constructor(
 		private readonly _extensionUri: vscode.Uri,
 	) { }
 
 	resolveWebviewView(webviewView: vscode.WebviewView, context: vscode.WebviewViewResolveContext, token: vscode.CancellationToken): Thenable<void> | void {
+		this._view = webviewView;
+
 		webviewView.webview.options = {
 			enableScripts: true,
 
@@ -124,7 +134,14 @@ class SpotifyPlayerViewProvider implements vscode.WebviewViewProvider {
 					}
 			}
 		});
-	} 
+	}
+
+	public update(songName: string, image: string) {
+		if (this._view) {
+			this._view.show?.(true);
+			this._view.webview.postMessage({ type: 'update', name: songName, image: image });
+		}
+	}
 	
 	private _getHtmlForWebview(webview: vscode.Webview) {
 		const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'main.js'));
@@ -142,6 +159,9 @@ class SpotifyPlayerViewProvider implements vscode.WebviewViewProvider {
 				<title>SEPotify</title>
 			</head>
 			<body>
+				<h1 class="song-title">Song Title</h1>
+				<img class="album-art" src="https://i.scdn.co/image/ab67616d0000b273ef7bfaf6252210b502861ffd" alt="Song Cover" />
+
 				<button type="submit" class="pause-play-button" style="background-color:black; outline:none">
 					<img src="https://img.icons8.com/?size=100&id=QgHnLwTtAxG8&format=png&color=ffffff" alt="Play/Pause" />
 				</button>
