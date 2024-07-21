@@ -5,6 +5,11 @@ const clientId = "your-client-id";
 
 export function activate(context: vscode.ExtensionContext) {
 
+	const provider = new SpotifyPlayerViewProvider(context.extensionUri);
+
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(SpotifyPlayerViewProvider.viewType, provider));
+
 	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.login', () => {
 		redirectToAuthCodeFlow(clientId, context);
 	}));
@@ -87,6 +92,77 @@ export function activate(context: vscode.ExtensionContext) {
 			method: "PUT", headers: { Authorization: `Bearer ${accessToken}` }
 		});
 	}
+}
+
+class SpotifyPlayerViewProvider implements vscode.WebviewViewProvider {
+
+	public static readonly viewType = 'SEPotify.playerView';
+
+	constructor(
+		private readonly _extensionUri: vscode.Uri,
+	) { }
+
+	resolveWebviewView(webviewView: vscode.WebviewView, context: vscode.WebviewViewResolveContext, token: vscode.CancellationToken): Thenable<void> | void {
+		webviewView.webview.options = {
+			enableScripts: true,
+
+			localResourceRoots: [
+				this._extensionUri
+			]
+		};
+
+		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+
+		webviewView.webview.onDidReceiveMessage(data => {
+			switch (data.type) {
+				case 'pausePlay':
+					{
+						vscode.commands.executeCommand('SEPotify.pausePlay');
+						break;
+					}
+			}
+		});
+	} 
+	
+	private _getHtmlForWebview(webview: vscode.Webview) {
+		const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'main.js'));
+
+		// Use a nonce to only allow a specific script to be run.
+		const nonce = getNonce();
+
+		return `<!DOCTYPE html>
+			<html lang="en">
+			<head>
+				<meta charset="UTF-8">
+
+				<!--
+					Use a content security policy to only allow loading styles from our extension directory,
+					and only allow scripts that have a specific nonce.
+					(See the 'webview-sample' extension sample for img-src content security policy examples)
+				-->
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+
+				<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+				<title>SEPotify</title>
+			</head>
+			<body>
+				<button class="pause-play-button">Pause | Play</button>
+
+				<script nonce="${nonce}" src="${scriptUri}"></script>
+			</body>
+			</html>`;
+	}
+
+}
+
+function getNonce() {
+	let text = '';
+	const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	for (let i = 0; i < 32; i++) {
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+	}
+	return text;
 }
 
 export function deactivate() {}

@@ -13,6 +13,25 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "SEPotify-sidebar-view",
+          "title": "SEPotify",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "SEPotify-sidebar-view": [
+        {
+          "type": "webview",
+          "id": "SEPotify.playerView",
+          "name": "SEPotify",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "SEPotify.login",

@@ -69,3 +69,8 @@ You can author your README using Visual Studio Code. Here are some useful editor
 * [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
 
 **Enjoy!**
+
+## Icon Credit
+
+Sidebar icon created by Abiyu agustian from Noun Project. (CC BY 3.0)
+Link: https://thenounproject.com/icon/music-7030627/
