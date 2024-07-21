@@ -21,6 +21,14 @@
       {
         "command": "SEPotify.pause",
         "title": "SEPotify: Pause"
+      },
+      {
+        "command": "SEPotify.play",
+        "title": "SEPotify: Play"
+      },
+      {
+        "command": "SEPotify.pausePlay",
+        "title": "SEPotify: Pause | Play"
       }
     ]
   },
