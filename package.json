@@ -1,5 +1,6 @@
 {
   "name": "SEPotify",
+  "publisher": "SEP",
   "displayName": "SEPotify",
   "description": "A VS Code extension to add a Spotify player GUI developed by SEPeers.",
   "version": "0.0.1",
@@ -14,8 +15,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "SEPotify.helloWorld",
-        "title": "Hello World"
+        "command": "SEPotify.login",
+        "title": "SEPotify: Login"
       }
     ]
   },
