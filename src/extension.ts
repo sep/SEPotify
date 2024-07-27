@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { redirectToAuthCodeFlow, getAccessToken } from "./authCodeWithPkce";
+import * as Spotify from '@spotify/web-api-ts-sdk';
 
 const clientId = "your-client-id";
 
@@ -21,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
 			await getAccessToken(clientId, queryParams.get('code')!, context);
 			vscode.window.showInformationMessage('Login successful');
 		}
-	}
+	};
 
 	context.subscriptions.push(
 		vscode.window.registerUriHandler({
@@ -34,24 +35,24 @@ export function activate(context: vscode.ExtensionContext) {
    		const url = "https://accounts.spotify.com/api/token";
 
 		const payload = {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded'
-		},
-		body: new URLSearchParams({
-			grant_type: 'refresh_token',
-			refresh_token: refreshToken!,
-			client_id: clientId
-		}),
-		}
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			},
+			body: new URLSearchParams({
+				grant_type: 'refresh_token',
+				refresh_token: refreshToken!,
+				client_id: clientId
+			}),
+		};
 		const body = await fetch(url, payload);
-		const { access_token, refresh_token} = await body.json();
+		const { access_token, refresh_token} = await body.json() as Spotify.AccessToken;
 
 		context.secrets.store('access_token', access_token);
 		context.secrets.store('refresh_token', refresh_token);
 
 		return access_token;
-	}
+	};
 
 	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.pause', async () => {
 		pause();
@@ -79,7 +80,7 @@ export function activate(context: vscode.ExtensionContext) {
 		await fetch("https://api.spotify.com/v1/me/player/play", {
 			method: "PUT", headers: { Authorization: `Bearer ${accessToken}` }
 		});
-	}
+	};
 
 	const pause = async () => {
 		const accessToken = await refreshToken();
@@ -87,7 +88,7 @@ export function activate(context: vscode.ExtensionContext) {
 		await fetch("https://api.spotify.com/v1/me/player/pause", {
 			method: "PUT", headers: { Authorization: `Bearer ${accessToken}` }
 		});
-	}
+	};
 
 	async function getPlayStatus(): Promise<PlayStatus> {
 		const accessToken = await refreshToken();
@@ -96,7 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
 			method: "GET", headers: { Authorization: `Bearer ${accessToken}` }
 		});
 
-		return await request.json();
+		return await request.json() as PlayStatus;
 	}
 
 }

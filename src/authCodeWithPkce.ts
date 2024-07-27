@@ -209,6 +209,7 @@
    limitations under the License.
  */
 
+import * as Spotify from '@spotify/web-api-ts-sdk';
 import * as vscode from 'vscode'; 
 
 export async function redirectToAuthCodeFlow(clientId: string, context: vscode.ExtensionContext) {
@@ -220,7 +221,7 @@ export async function redirectToAuthCodeFlow(clientId: string, context: vscode.E
     const params = new URLSearchParams();
     params.append("client_id", clientId);
     params.append("response_type", "code");
-    params.append("redirect_uri", "vscode://SEP.SEPotify");
+    params.append("redirect_uri", "vscode://SEP.SEPotify"); // Modified URI
     params.append("scope", "user-read-private user-read-email user-read-playback-state user-modify-playback-state");
     params.append("code_challenge_method", "S256");
     params.append("code_challenge", challenge);
@@ -248,7 +249,7 @@ export async function getAccessToken(clientId: string, code: string, context: vs
     });
 
     // Begin Modification
-    const { access_token, refresh_token } = await result.json();
+    const { access_token, refresh_token } = await result.json() as Spotify.AccessToken;
 
     context.secrets.store("access_token", access_token);
     context.secrets.store("refresh_token", refresh_token);
