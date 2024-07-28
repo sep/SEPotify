@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { redirectToAuthCodeFlow, getAccessToken } from "./authCodeWithPkce";
 import * as Spotify from '@spotify/web-api-ts-sdk';
 
-const clientId = "your-client-id";
+const clientId = process.env.CLIENT_ID as string;
 
 export function activate(context: vscode.ExtensionContext) {
 
