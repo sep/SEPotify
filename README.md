@@ -14,14 +14,18 @@ You can also access the visual interface in the sidebar.
 
 ## Install
 
-1. Download `SEPotify-X.X.X.vsix`.
-2. Open VS Code.
-3. Go to the Extensions view by clicking on the square icon in the sidebar.
-4. Click on the three dots in the top right corner.
-5. Select "Install from VSIX...".
-6. Select the downloaded `SEPotify-X.X.X.vsix` file.
-7. Reload VS Code.
-8. Run command `SEPotify: Login` to login to Spotify.
+1. Clone this repository and open it in VS Code.
+2. Run `npm install` in the root directory.
+3. Create a Spotify Developer account and create a new app. [Instructions](https://developer.spotify.com/documentation/web-api/tutorials/getting-started#set-up-your-account)
+4. Add `vscode://SEP.SEPotify` as a redirect URI in your Spotify app settings.
+5. Set your Spotify app client ID in `.vscode/launch.json`.
+6. Press `F5` to run the extension in a new window to test.
+7. Package the extension by running `vsce package` in the root directory.
+8. Open the Extensions view in VS Code and click the `...` button, then `Install from VSIX...`.
+9. Select the `.vsix` file that was created in the root directory.
+10. Reload VS Code to activate the extension.
+11. Open the command palette and run `SEPotify: Login` to authenticate your Spotify account.
+12. You can now use the commands in the command palette or access the visual interface in the sidebar.
 
 ### 0.0.1
 
