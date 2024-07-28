@@ -232,7 +232,8 @@ export async function redirectToAuthCodeFlow(clientId: string, context: vscode.E
     vscode.env.openExternal(vscode.Uri.parse(url));
 }
 
-export async function getAccessToken(clientId: string, code: string, context: vscode.ExtensionContext) {
+// Modified to Return Spotify Access Token Object
+export async function getAccessToken(clientId: string, code: string, context: vscode.ExtensionContext): Promise<AccessToken> {
     const verifier = await context.secrets.get("verifier");
 
     const params = new URLSearchParams();
@@ -248,11 +249,8 @@ export async function getAccessToken(clientId: string, code: string, context: vs
         body: params
     });
 
-    // Begin Modification
-    const { access_token, refresh_token } = await result.json() as AccessToken;
-
-    context.secrets.store("access_token", access_token);
-    context.secrets.store("refresh_token", refresh_token);
+    // Modified to Return Spotify Access Token Object
+    return await result.json() as AccessToken;
 }
 
 function generateCodeVerifier(length: number) {

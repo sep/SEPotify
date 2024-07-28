@@ -1,10 +1,16 @@
 import * as vscode from 'vscode';
 import { redirectToAuthCodeFlow, getAccessToken } from "./authCodeWithPkce";
-import { type AccessToken, type PlaybackState } from '@spotify/web-api-ts-sdk';
+import { SpotifyApi, type AccessToken } from '@spotify/web-api-ts-sdk';
 
-const clientId = process.env.CLIENT_ID as string;
+export async function activate(context: vscode.ExtensionContext) {
 
-export function activate(context: vscode.ExtensionContext) {
+	let spotify: SpotifyApi;
+
+	const clientId = process.env.CLIENT_ID as string;
+	const accessToken = await retrieveAccessToken();
+	if (accessToken) {
+		spotify = SpotifyApi.withAccessToken(clientId, accessToken);
+	}
 
 	const provider = new SpotifyPlayerViewProvider(context.extensionUri);
 
@@ -19,8 +25,13 @@ export function activate(context: vscode.ExtensionContext) {
 		const queryParams = new URLSearchParams(uri.query);
 
 		if (queryParams.has('code')) {
-			await getAccessToken(clientId, queryParams.get('code')!, context);
+			const accessToken = await getAccessToken(clientId, queryParams.get('code')!, context);
+
+			spotify = SpotifyApi.withAccessToken(clientId, accessToken);
+
 			vscode.window.showInformationMessage('Login successful');
+
+			storeAccessToken(accessToken);
 		}
 	};
 
@@ -30,45 +41,21 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	);
 
-	const refreshToken = async () => {
-		const refreshToken = await context.secrets.get("refresh_token");
-   		const url = "https://accounts.spotify.com/api/token";
-
-		const payload = {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded'
-			},
-			body: new URLSearchParams({
-				grant_type: 'refresh_token',
-				refresh_token: refreshToken!,
-				client_id: clientId
-			}),
-		};
-		const body = await fetch(url, payload);
-		const { access_token, refresh_token} = await body.json() as AccessToken;
-
-		context.secrets.store('access_token', access_token);
-		context.secrets.store('refresh_token', refresh_token);
-
-		return access_token;
-	};
-
-	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.pause', async () => {
-		pause();
+	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.pause', () => {
+		spotify.player.pausePlayback("");
 	}));
 
-	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.play', async () => {
-		play();
+	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.play', () => {
+		spotify.player.startResumePlayback("");
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.pausePlay', async () => {
-		const playStatus = await getPlayStatus();
+		const playStatus = await spotify.player.getPlaybackState();
 
 		if (playStatus.is_playing) {
-			pause();
+			spotify.player.pausePlayback("");
 		} else {
-			play();
+			spotify.player.startResumePlayback("");
 		}
 
 		if ('album' in playStatus.item) {
@@ -76,32 +63,37 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}));
 
-	const play = async () => {
-		const accessToken = await refreshToken();
+	function storeAccessToken(accessToken: AccessToken) {
+		context.secrets.store('SEPotify.access_token.access_token', accessToken.access_token);
+		context.secrets.store('SEPotify.access_token.token_type', accessToken.token_type);
+		context.secrets.store('SEPotify.access_token.expires_in', accessToken.expires_in.toString());
+		context.secrets.store('SEPotify.access_token.refresh_token', accessToken.refresh_token);
 
-		await fetch("https://api.spotify.com/v1/me/player/play", {
-			method: "PUT", headers: { Authorization: `Bearer ${accessToken}` }
-		});
-	};
-
-	const pause = async () => {
-		const accessToken = await refreshToken();
-
-		await fetch("https://api.spotify.com/v1/me/player/pause", {
-			method: "PUT", headers: { Authorization: `Bearer ${accessToken}` }
-		});
-	};
-
-	async function getPlayStatus(): Promise<PlaybackState> {
-		const accessToken = await refreshToken();
-
-		const request = await fetch("https://api.spotify.com/v1/me/player", {
-			method: "GET", headers: { Authorization: `Bearer ${accessToken}` }
-		});
-
-		return await request.json() as PlaybackState;
+		if (accessToken.expires) {
+			context.secrets.store('SEPotify.access_token.expires', accessToken.expires.toString());
+		}
 	}
 
+	async function retrieveAccessToken(): Promise<AccessToken | undefined> {
+		const accessToken = await context.secrets.get('SEPotify.access_token.access_token');
+
+		if (!accessToken) {
+			return undefined;
+		}
+
+		const tokenType = await context.secrets.get('SEPotify.access_token.token_type');
+		const expiresIn = await context.secrets.get('SEPotify.access_token.expires_in');
+		const refreshToken = await context.secrets.get('SEPotify.access_token.refresh_token');
+		const expires = await context.secrets.get('SEPotify.access_token.expires');
+
+		return {
+			access_token: accessToken!,
+			token_type: tokenType!,
+			expires_in: parseInt(expiresIn!),
+			refresh_token: refreshToken!,
+			expires: expires ? parseInt(expires) : undefined
+		};
+	}
 }
 
 class SpotifyPlayerViewProvider implements vscode.WebviewViewProvider {
