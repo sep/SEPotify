@@ -71,7 +71,9 @@ export function activate(context: vscode.ExtensionContext) {
 			play();
 		}
 
-		provider.update(playStatus.item.name, playStatus.item.album.images[0].url);
+		if ('album' in playStatus.item) {
+			provider.update(playStatus.item.name, playStatus.item.album.images[0].url);
+		}
 	}));
 
 	const play = async () => {
@@ -90,14 +92,14 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 	};
 
-	async function getPlayStatus(): Promise<PlayStatus> {
+	async function getPlayStatus(): Promise<Spotify.PlaybackState> {
 		const accessToken = await refreshToken();
 
 		const request = await fetch("https://api.spotify.com/v1/me/player", {
 			method: "GET", headers: { Authorization: `Bearer ${accessToken}` }
 		});
 
-		return await request.json() as PlayStatus;
+		return await request.json() as Spotify.PlaybackState;
 	}
 
 }
