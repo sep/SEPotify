@@ -209,7 +209,7 @@
    limitations under the License.
  */
 
-import * as Spotify from '@spotify/web-api-ts-sdk';
+import { type AccessToken } from '@spotify/web-api-ts-sdk';
 import * as vscode from 'vscode'; 
 
 export async function redirectToAuthCodeFlow(clientId: string, context: vscode.ExtensionContext) {
@@ -249,7 +249,7 @@ export async function getAccessToken(clientId: string, code: string, context: vs
     });
 
     // Begin Modification
-    const { access_token, refresh_token } = await result.json() as Spotify.AccessToken;
+    const { access_token, refresh_token } = await result.json() as AccessToken;
 
     context.secrets.store("access_token", access_token);
     context.secrets.store("refresh_token", refresh_token);

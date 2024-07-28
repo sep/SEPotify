@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { redirectToAuthCodeFlow, getAccessToken } from "./authCodeWithPkce";
-import * as Spotify from '@spotify/web-api-ts-sdk';
+import { type AccessToken, type PlaybackState } from '@spotify/web-api-ts-sdk';
 
 const clientId = process.env.CLIENT_ID as string;
 
@@ -46,7 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}),
 		};
 		const body = await fetch(url, payload);
-		const { access_token, refresh_token} = await body.json() as Spotify.AccessToken;
+		const { access_token, refresh_token} = await body.json() as AccessToken;
 
 		context.secrets.store('access_token', access_token);
 		context.secrets.store('refresh_token', refresh_token);
@@ -92,14 +92,14 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 	};
 
-	async function getPlayStatus(): Promise<Spotify.PlaybackState> {
+	async function getPlayStatus(): Promise<PlaybackState> {
 		const accessToken = await refreshToken();
 
 		const request = await fetch("https://api.spotify.com/v1/me/player", {
 			method: "GET", headers: { Authorization: `Bearer ${accessToken}` }
 		});
 
-		return await request.json() as Spotify.PlaybackState;
+		return await request.json() as PlaybackState;
 	}
 
 }
