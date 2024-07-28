@@ -26,8 +26,3 @@ You can also access the visual interface in the sidebar.
 10. Reload VS Code to activate the extension.
 11. Open the command palette and run `SEPotify: Login` to authenticate your Spotify account.
 12. You can now use the commands in the command palette or access the visual interface in the sidebar.
-
-### 0.0.1
-
-Initial release of SEPotify.
-Includes login and play/pause functionality.
