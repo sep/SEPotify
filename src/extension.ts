@@ -155,10 +155,12 @@ class SpotifyPlayerViewProvider implements vscode.WebviewViewProvider {
 			</head>
 			<body>
 				<h1 class="song-title">Song Title</h1>
-				<img class="album-art" src="https://i.scdn.co/image/ab67616d0000b273ef7bfaf6252210b502861ffd" alt="Song Cover" />
+				<div>
+					<img class="album-art" src="https://img.icons8.com/?size=999999&id=QDqTv8PbGZgc&format=png&color=ffffff" alt="Song Cover" />
+				</div>
 
 				<button type="submit" class="pause-play-button" style="background-color:black; outline:none">
-					<img src="https://img.icons8.com/?size=100&id=QgHnLwTtAxG8&format=png&color=ffffff" alt="Play/Pause" />
+					<img src="https://img.icons8.com/?size=999999&id=QgHnLwTtAxG8&format=png&color=ffffff" alt="Play/Pause" />
 				</button>
 
 				<p><small>Icons by <a href="https://icons8.com">Icons8</a></small></p>
