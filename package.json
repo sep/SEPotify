@@ -51,6 +51,10 @@
       {
         "command": "SEPotify.pausePlay",
         "title": "SEPotify: Pause | Play"
+      },
+      {
+        "command": "SEPotify.updateSongInformation",
+        "title": "SEPotify: Refresh View"
       }
     ]
   },
