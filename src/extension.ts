@@ -1,15 +1,26 @@
 import * as vscode from 'vscode';
 import { redirectToAuthCodeFlow, getAccessToken } from "./authCodeWithPkce";
-import { SpotifyApi, type AccessToken } from '@spotify/web-api-ts-sdk';
+import { SpotifyApi, type AccessToken, type PlaybackState } from '@spotify/web-api-ts-sdk';
 
 export async function activate(context: vscode.ExtensionContext) {
 
-	let spotify: SpotifyApi;
+	let spotify: SpotifyApi | undefined;
+	spotify?.getAccessToken();
 
 	const clientId = process.env.CLIENT_ID as string;
 	const accessToken = await retrieveAccessToken();
 	if (accessToken) {
 		spotify = SpotifyApi.withAccessToken(clientId, accessToken);
+
+		try {
+			await spotify.player.getPlaybackState();
+
+			storeAccessToken(await spotify.getAccessToken());
+		} catch (error) {
+			vscode.window.showInformationMessage('Auto-login failed. Please login again.');
+
+			spotify = undefined;
+		}
 	}
 
 	const provider = new SpotifyPlayerViewProvider(context.extensionUri);
@@ -31,6 +42,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
 			vscode.window.showInformationMessage('Login successful');
 
+			updateView(await spotify.player.getPlaybackState());
+
 			storeAccessToken(accessToken);
 		}
 	};
@@ -41,15 +54,32 @@ export async function activate(context: vscode.ExtensionContext) {
 		})
 	);
 
-	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.pause', () => {
-		spotify.player.pausePlayback("");
+	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.pause', async () => {
+		if (spotify) {
+			await spotify.player.pausePlayback("");
+
+			storeAccessToken(await spotify.getAccessToken());
+		} else {
+			vscode.window.showInformationMessage('Please login.');
+		}
 	}));
 
-	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.play', () => {
-		spotify.player.startResumePlayback("");
+	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.play', async () => {
+		if (spotify) {
+			await spotify.player.startResumePlayback("");
+
+			storeAccessToken(await spotify.getAccessToken());
+		} else {
+			vscode.window.showInformationMessage('Please login.');
+		}
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.pausePlay', async () => {
+		if (!spotify) {
+			vscode.window.showInformationMessage('Please login.');
+			return;
+		}
+
 		const playStatus = await spotify.player.getPlaybackState();
 
 		if (playStatus.is_playing) {
@@ -58,12 +88,34 @@ export async function activate(context: vscode.ExtensionContext) {
 			spotify.player.startResumePlayback("");
 		}
 
-		if ('album' in playStatus.item) {
-			provider.update(playStatus.item.name, playStatus.item.album.images[0].url);
-		}
+		updateView(playStatus);
+
+		storeAccessToken(await spotify.getAccessToken());
 	}));
 
-	function storeAccessToken(accessToken: AccessToken) {
+	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.updateSongInformation', () => {
+		if (!spotify) {
+			vscode.window.showInformationMessage('Please login.');
+			return;
+		}
+
+		requestUpdate();
+	}));
+
+	function updateView(playStatus: PlaybackState) {
+		let albumImageUrl: string = "";
+		if ('album' in playStatus.item) {
+			albumImageUrl = playStatus.item.album.images[0].url;
+		}
+
+		provider.update(playStatus.item.name, albumImageUrl);
+	}
+
+	function storeAccessToken(accessToken: AccessToken | null) {
+		if (!accessToken) {
+			return;
+		}
+
 		context.secrets.store('SEPotify.access_token.access_token', accessToken.access_token);
 		context.secrets.store('SEPotify.access_token.token_type', accessToken.token_type);
 		context.secrets.store('SEPotify.access_token.expires_in', accessToken.expires_in.toString());
@@ -94,6 +146,20 @@ export async function activate(context: vscode.ExtensionContext) {
 			expires: expires ? parseInt(expires) : undefined
 		};
 	}
+
+	async function requestUpdate() {
+		if (!spotify) {
+			return;
+		}
+
+		const playStatus = await spotify.player.getPlaybackState();
+
+		if ('album' in playStatus.item) {
+			provider.update(playStatus.item.name, playStatus.item.album.images[0].url);
+		}
+
+		storeAccessToken(await spotify.getAccessToken());
+	}
 }
 
 class SpotifyPlayerViewProvider implements vscode.WebviewViewProvider {
@@ -119,6 +185,8 @@ class SpotifyPlayerViewProvider implements vscode.WebviewViewProvider {
 		};
 
 		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+
+		vscode.commands.executeCommand('SEPotify.updateSongInformation');
 
 		webviewView.webview.onDidReceiveMessage(data => {
 			switch (data.type) {
