@@ -56,7 +56,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.pause', async () => {
 		if (spotify) {
-			await spotify.player.pausePlayback("");
+			try {
+				await spotify.player.pausePlayback("");
+			} catch (error) {
+				// I don't know why this is throwing an error, so I'm ignoring it.
+			}
+			requestUpdate();
 
 			storeAccessToken(await spotify.getAccessToken());
 		} else {
@@ -66,7 +71,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.play', async () => {
 		if (spotify) {
-			await spotify.player.startResumePlayback("");
+			try {
+				await spotify.player.startResumePlayback("");
+			} catch (error) {
+				// I don't know why this is throwing an error, so I'm ignoring it.
+			}
+			requestUpdate();
 
 			storeAccessToken(await spotify.getAccessToken());
 		} else {
@@ -91,6 +101,36 @@ export async function activate(context: vscode.ExtensionContext) {
 		updateView(playStatus);
 
 		storeAccessToken(await spotify.getAccessToken());
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.nextTrack', async () => {
+		if (spotify) {
+			try {
+				await spotify.player.skipToNext("");
+			} catch (error) {
+				// I don't know why this is throwing an error, so I'm ignoring it.
+			}
+			requestUpdate();
+
+			storeAccessToken(await spotify.getAccessToken());
+		} else {
+			vscode.window.showInformationMessage('Please login.');
+		}
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.previousTrack', async () => {
+		if (spotify) {
+			try {
+				await spotify.player.skipToPrevious("");
+			} catch (error) {
+				// I don't know why this is throwing an error, so I'm ignoring it.
+			}
+			requestUpdate();
+
+			storeAccessToken(await spotify.getAccessToken());
+		} else {
+			vscode.window.showInformationMessage('Please login.');
+		}
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('SEPotify.updateSongInformation', () => {

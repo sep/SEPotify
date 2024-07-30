@@ -53,6 +53,14 @@
         "title": "SEPotify: Pause | Play"
       },
       {
+        "command": "SEPotify.nextTrack",
+        "title": "SEPotify: Next Track"
+      },
+      {
+        "command": "SEPotify.previousTrack",
+        "title": "SEPotify: Previous Track"
+      },
+      {
         "command": "SEPotify.updateSongInformation",
         "title": "SEPotify: Refresh View"
       }
