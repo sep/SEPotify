@@ -4,6 +4,12 @@
     document.querySelector('.pause-play-button').addEventListener('click', () => {
         pausePlay();
     });
+    document.querySelector('.rewind-button').addEventListener('click', () => {
+        skip();
+    });
+    document.querySelector('.skip-button').addEventListener('click', () => {
+        rewind();
+    });
 
     window.addEventListener('message', event => {
         const message = event.data;
@@ -27,5 +33,13 @@
 
     function pausePlay() {
         vscode.postMessage({ type: 'pausePlay' });
+    }
+
+    function skip() {
+        vscode.postMessage({ type: 'skip' });
+    }
+
+    function rewind() {
+        vscode.postMessage({ type: 'rewind' });
     }
 }());

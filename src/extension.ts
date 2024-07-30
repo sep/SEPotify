@@ -231,10 +231,20 @@ class SpotifyPlayerViewProvider implements vscode.WebviewViewProvider {
 		webviewView.webview.onDidReceiveMessage(data => {
 			switch (data.type) {
 				case 'pausePlay':
-					{
-						vscode.commands.executeCommand('SEPotify.pausePlay');
-						break;
-					}
+				{
+					vscode.commands.executeCommand('SEPotify.pausePlay');
+					break;
+				}
+				case 'skip':
+				{
+					vscode.commands.executeCommand('SEPotify.nextTrack');
+					break;
+				}
+				case 'rewind':
+				{
+					vscode.commands.executeCommand('SEPotify.previousTrack');
+					break;
+				}
 			}
 		});
 	}
@@ -267,9 +277,19 @@ class SpotifyPlayerViewProvider implements vscode.WebviewViewProvider {
 					<img class="album-art" src="https://img.icons8.com/?size=999999&id=QDqTv8PbGZgc&format=png&color=ffffff" alt="Song Cover" />
 				</div>
 
-				<button type="submit" class="pause-play-button" style="background-color:black; outline:none">
+				<div>
+				<button type="submit" class="rewind-button" style="background-color:black; outline:none; max-width:32%">
+					<img src="https://img.icons8.com/?size=999999&id=91480&format=png&color=ffffff" alt="Rewind" />
+				</button>
+
+				<button type="submit" class="pause-play-button" style="background-color:black; outline:none; max-width:32%">
 					<img src="https://img.icons8.com/?size=999999&id=QgHnLwTtAxG8&format=png&color=ffffff" alt="Play/Pause" />
 				</button>
+
+				<button type="submit" class="skip-button" style="background-color:black; outline:none; max-width:32%">
+					<img src="https://img.icons8.com/?size=999999&id=91476&format=png&color=ffffff" alt="Skip" />
+				</button>
+				</div>
 
 				<p><small>Icons by <a href="https://icons8.com">Icons8</a></small></p>
 
