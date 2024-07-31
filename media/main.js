@@ -5,10 +5,10 @@
         pausePlay();
     });
     document.querySelector('.rewind-button').addEventListener('click', () => {
-        skip();
+        rewind();
     });
     document.querySelector('.skip-button').addEventListener('click', () => {
-        rewind();
+        skip();
     });
 
     window.addEventListener('message', event => {
